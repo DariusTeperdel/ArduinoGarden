@@ -4,6 +4,7 @@ import 'package:arduino_garden/color_picker_page.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
+import 'package:intl/intl.dart';
 
 import 'grid_card.dart';
 import 'network.dart';
@@ -820,9 +821,36 @@ class GraphsPage extends StatefulWidget {
 }
 
 ///JSUT DEMO FOR GRAPHS DELETUS AFTER
-class GraphDataDemo {}
+class GraphDataDemo {
+  GraphDataDemo(this.time, this.value);
+  final double time;
+  final double value;
+}
+
+List<GraphDataDemo> getGraphDataDemo() {
+  final List<GraphDataDemo> chartData = [
+    GraphDataDemo(10, 18.5),
+    GraphDataDemo(11, 20.2),
+    GraphDataDemo(12, 21.5),
+    GraphDataDemo(13, 23.1),
+    GraphDataDemo(14, 24.2),
+    GraphDataDemo(15, 23.6),
+    GraphDataDemo(16, 24.7),
+    GraphDataDemo(17, 25.4)
+  ];
+
+  return chartData;
+}
 
 class _GraphsPageState extends State<GraphsPage> {
+  List<GraphDataDemo> _chartData;
+
+  @override
+  void initState() {
+    _chartData = getGraphDataDemo();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -843,36 +871,147 @@ class _GraphsPageState extends State<GraphsPage> {
               children: [
                 Expanded(
                   child: GridCard(
-                    child: ListView(
-                      children: <Widget>[
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.fromLTRB(
-                                      0.0, 10.0, 0.0, 0.0),
-                                  child: Text(
-                                    'Temperature History',
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
-                              ),
-                            ),
+                    child: Expanded(
+                      child: Container(
+                        child: SfCartesianChart(
+                          title: ChartTitle(text: 'Temperature History'),
+                          primaryXAxis: NumericAxis(
+                              edgeLabelPlacement: EdgeLabelPlacement.shift),
+                          series: <ChartSeries>[
+                            LineSeries<GraphDataDemo, double>(
+                              dataSource: _chartData,
+                              xValueMapper: (GraphDataDemo graph, _) =>
+                                  graph.time,
+                              yValueMapper: (GraphDataDemo graph, _) =>
+                                  graph.value,
+                              dataLabelSettings:
+                                  DataLabelSettings(isVisible: true),
+                            )
                           ],
                         ),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Container(
-                                child: SfCartesianChart(),
-                                margin: const EdgeInsets.fromLTRB(
-                                    10.0, 18.0, 22.0, 6.0),
-                              ),
-                            ),
+                        margin:
+                            const EdgeInsets.fromLTRB(10.0, 18.0, 22.0, 6.0),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: GridCard(
+                    child: Expanded(
+                      child: Container(
+                        child: SfCartesianChart(
+                          title: ChartTitle(text: 'Humidity History'),
+                          primaryXAxis: NumericAxis(
+                              edgeLabelPlacement: EdgeLabelPlacement.shift),
+                          series: <ChartSeries>[
+                            LineSeries<GraphDataDemo, double>(
+                              dataSource: _chartData,
+                              xValueMapper: (GraphDataDemo graph, _) =>
+                                  graph.time,
+                              yValueMapper: (GraphDataDemo graph, _) =>
+                                  graph.value,
+                              dataLabelSettings:
+                                  DataLabelSettings(isVisible: true),
+                            )
                           ],
                         ),
-                      ],
+                        margin:
+                            const EdgeInsets.fromLTRB(10.0, 18.0, 22.0, 6.0),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: GridCard(
+                    child: Expanded(
+                      child: Container(
+                        child: SfCartesianChart(
+                          title: ChartTitle(text: 'Light Intensity History'),
+                          primaryXAxis: NumericAxis(
+                              edgeLabelPlacement: EdgeLabelPlacement.shift),
+                          series: <ChartSeries>[
+                            LineSeries<GraphDataDemo, double>(
+                              dataSource: _chartData,
+                              xValueMapper: (GraphDataDemo graph, _) =>
+                                  graph.time,
+                              yValueMapper: (GraphDataDemo graph, _) =>
+                                  graph.value,
+                              dataLabelSettings:
+                                  DataLabelSettings(isVisible: true),
+                            )
+                          ],
+                        ),
+                        margin:
+                            const EdgeInsets.fromLTRB(10.0, 18.0, 22.0, 6.0),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: GridCard(
+                    child: Expanded(
+                      child: Container(
+                        child: SfCartesianChart(
+                          title: ChartTitle(text: 'Solar Power History'),
+                          primaryXAxis: NumericAxis(
+                              edgeLabelPlacement: EdgeLabelPlacement.shift),
+                          series: <ChartSeries>[
+                            LineSeries<GraphDataDemo, double>(
+                              dataSource: _chartData,
+                              xValueMapper: (GraphDataDemo graph, _) =>
+                                  graph.time,
+                              yValueMapper: (GraphDataDemo graph, _) =>
+                                  graph.value,
+                              dataLabelSettings:
+                                  DataLabelSettings(isVisible: true),
+                            )
+                          ],
+                        ),
+                        margin:
+                            const EdgeInsets.fromLTRB(10.0, 18.0, 22.0, 6.0),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: GridCard(
+                    child: Expanded(
+                      child: Container(
+                        child: SfCartesianChart(
+                          title: ChartTitle(text: 'Battery Level History'),
+                          primaryXAxis: NumericAxis(
+                              edgeLabelPlacement: EdgeLabelPlacement.shift),
+                          series: <ChartSeries>[
+                            LineSeries<GraphDataDemo, double>(
+                              dataSource: _chartData,
+                              xValueMapper: (GraphDataDemo graph, _) =>
+                                  graph.time,
+                              yValueMapper: (GraphDataDemo graph, _) =>
+                                  graph.value,
+                              dataLabelSettings:
+                                  DataLabelSettings(isVisible: true),
+                            )
+                          ],
+                        ),
+                        margin:
+                            const EdgeInsets.fromLTRB(10.0, 18.0, 22.0, 6.0),
+                      ),
                     ),
                   ),
                 ),
