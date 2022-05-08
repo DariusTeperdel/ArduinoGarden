@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:arduino_garden/color_picker_page.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 
 import 'grid_card.dart';
 import 'network.dart';
@@ -17,25 +18,104 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Arduino Garden',
       theme: ThemeData(
-          primarySwatch: Colors.pink,
-          //appBarTheme: Colors.pink.shade200,
+        // useMaterial3: true,
+        primarySwatch: Colors.pink,
+        //appBarTheme: Colors.pink.shade200,
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: Color.fromARGB(255, 233, 30, 99),
+          selectedItemColor: Color.fromARGB(220, 251, 251, 243),
+          unselectedItemColor: Color.fromARGB(204, 61, 61, 61),
+          elevation: 20,
+          // showSelectedLabels: false,
+          showUnselectedLabels: false,
+        ),
       ),
-      home: MyHomePage(title: 'Arduino Garden'),
+      home: HomePage(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  MyHomePage({Key key, this.title}) : super(key: key);
-
-  final String title;
+class HomePage extends StatefulWidget {
+  const HomePage({Key key}) : super(key: key);
 
   @override
-  _MyHomePageState createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
+class _HomePageState extends State<HomePage> {
+  int currentPage = 0;
+  String selectedGarden;
 
-class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
+  static List<Widget> pages = [
+    const MainPage(),
+    const GraphsPage(),
+    const SchedulePage(),
+    const SettingsPage(),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(selectedGarden ?? "Arduino Garden"),
+        actions: [
+          PopupMenuButton(
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: "garden 1",
+                child: Text("garden 1"),
+              ),
+              const PopupMenuItem(
+                value: "garden 2",
+                child: Text("garden 2"),
+              ),
+            ],
+            icon: Icon(Icons.arrow_drop_down),
+            onSelected: (newGarden) {
+              setState(() {
+                selectedGarden = newGarden;
+              });
+            },
+          ),
+        ],
+      ),
+      body: pages[currentPage],
+      bottomNavigationBar: BottomNavigationBar(
+        type: BottomNavigationBarType.fixed,
+        items: [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: "Home",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.bar_chart),
+            label: "Graphs",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.calendar_month),
+            label: "Schedule",
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings),
+            label: "Settings",
+          ),
+        ],
+        currentIndex: currentPage,
+        onTap: (newIndex) => setState(() => currentPage = newIndex),
+      ),
+    );
+  }
+}
+
+class MainPage extends StatefulWidget {
+  const MainPage({Key key}) : super(key: key);
+
+  @override
+  _MainPageState createState() => _MainPageState();
+}
+
+class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
+  bool disposed = false;
   Timer refreshTimer;
   Timer pumpImageTimer;
   Timer deviceImageTimer;
@@ -56,20 +136,24 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
   int deviceImage = 0;
   final int deviceImageCount = 6;
   final int pumpImageCount = 6;
-  int arduinoLastActive = 0;
+  int arduinoLastActive = 60;
   Color rgbColor = Colors.green.withAlpha(255);
   AnimationController rainbowAnimationController;
   AnimationController bounceAnimationController;
 
-  Widget get rgbModeIcon{
-    switch (rgbMode){
+  Widget get rgbModeIcon {
+    switch (rgbMode) {
       case 0:
         return Icon(Icons.wb_iridescent);
       case 1:
-        return Image.asset("assets/rainbow.png", alignment: Alignment.center,);
+        return Image.asset(
+          "assets/rainbow.png",
+          alignment: Alignment.center,
+        );
       case 2:
         return Icon(Icons.blur_linear);
-      default: return null;
+      default:
+        return null;
     }
   }
 
@@ -77,33 +161,35 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     return arduinoLastActive < 30;
   }
 
-  void delayedStartRefreshTimer(){
+  void delayedStartRefreshTimer() {
     restartTimer?.cancel();
-    restartTimer = Timer(const Duration(seconds: 2),(){
-      startRefreshTimer();
+    restartTimer = Timer(const Duration(seconds: 2), () {
+      if (!disposed) startRefreshTimer();
     });
   }
 
-  void pauseRefreshTimer(){
+  void pauseRefreshTimer() {
     refreshTimer?.cancel();
     delayedStartRefreshTimer();
   }
 
-
-
-  void startRefreshTimer(){
+  void startRefreshTimer() {
     refreshTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      getDataField("temperature").then((value) => tempStreamController.sink.add(value));
-      getDataField("pump").then((value) => pumpStreamController.sink.add(value != 0));
-      getDataField("humidity").then((value) => humidityStreamController.sink.add(value));
-      getDataField("lightIntensity").then((value) => lightIntensityStreamController.sink.add(value));
+      getDataField("temperature")
+          .then((value) => tempStreamController.sink.add(value));
+      getDataField("pump")
+          .then((value) => pumpStreamController.sink.add(value != 0));
+      getDataField("humidity")
+          .then((value) => humidityStreamController.sink.add(value));
+      getDataField("lightIntensity")
+          .then((value) => lightIntensityStreamController.sink.add(value));
       getTimeField("lastOnline").then((value) {
         setState(() {
           arduinoLastActive = value;
         });
       });
 
-      getDataStringField("rgbColor").then((value){
+      getDataStringField("rgbColor").then((value) {
         final rgb = value.split(",").map((e) => int.parse(e)).toList();
         setState(() {
           rgbColor = Color.fromRGBO(rgb[0], rgb[1], rgb[2], 1);
@@ -130,7 +216,7 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
   }
 
-  void initialAssetLoad(BuildContext context){
+  void initialAssetLoad(BuildContext context) {
     precacheImage(AssetImage("assets/base.png"), context);
     precacheImage(AssetImage("assets/device off.png"), context);
     precacheImage(AssetImage("assets/device on 0.png"), context);
@@ -174,9 +260,9 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     pumpStreamController = StreamController();
     tempStream = tempStreamController.stream.asBroadcastStream();
     humidityStream = humidityStreamController.stream.asBroadcastStream();
-    lightIntensityStream = lightIntensityStreamController.stream.asBroadcastStream();
+    lightIntensityStream =
+        lightIntensityStreamController.stream.asBroadcastStream();
     pumpStream = pumpStreamController.stream.asBroadcastStream();
-
 
     pumpStream.listen((event) {
       setState(() {
@@ -188,23 +274,20 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
     pumpImageTimer = Timer.periodic(const Duration(milliseconds: 300), (timer) {
       pumpImage = (pumpImage + 1) % pumpImageCount;
-      if (pumpState){
-        setState(() {
-
-        });
-      }else{
+      if (pumpState) {
+        setState(() {});
+      } else {
         pumpImage = 0;
       }
     });
 
-    deviceImageTimer = Timer.periodic(const Duration(milliseconds: 200), (timer) {
+    deviceImageTimer =
+        Timer.periodic(const Duration(milliseconds: 200), (timer) {
       deviceImage = (deviceImage + 1) % deviceImageCount;
-      if (arduinoOnline){
-        setState(() {
-
-        });
-      }else{
-       deviceImage = 0;
+      if (arduinoOnline) {
+        setState(() {});
+      } else {
+        deviceImage = 0;
       }
     });
 
@@ -219,105 +302,105 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
 
   @override
   void dispose() {
+    disposed = true;
     refreshTimer.cancel();
+    restartTimer?.cancel();
     pumpImageTimer.cancel();
     deviceImageTimer.cancel();
     tempStreamController.close();
     pumpStreamController.close();
     humidityStreamController.close();
     lightIntensityStreamController.close();
+    rainbowAnimationController.dispose();
+    bounceAnimationController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Container(
-        decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.pink.shade600,
-                Colors.amber.shade900,
-              ],
-            )
+    return Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [
+            Colors.pink.shade600,
+            Colors.amber.shade900,
+          ],
         ),
-
-        child: Center(
-          child: ListView(
-            children: <Widget>[
-              Row(
-                children: [
-                  Expanded(
-                    child: StreamBuilder<int>(
-                        stream: tempStream,
-                        initialData: 0,
-                        builder: (context, snapshot) {
-                          return GridCard(
-                            backgroundColor: Colors.amber.shade50,
-                            child: Stack(children: [
-                              SfRadialGauge(
-                                  key: Key("temperatureGauge"),
-                                  title: GaugeTitle(text: "Temperature"),
-                                  axes: [
-                                    RadialAxis(
-                                        startAngle: 150,
-                                        endAngle: 30,
-                                        minimum: -20,
-                                        maximum: 60,
-                                        ranges: [
-                                          GaugeRange(
-                                              startValue: -20,
-                                              endValue: 0,
-                                              color: Colors.cyan.shade200),
-                                          GaugeRange(
-                                              startValue: 0,
-                                              endValue: 20,
-                                              color: Colors.lightBlue.shade600),
-                                          GaugeRange(
-                                              startValue: 20,
-                                              endValue: 35,
-                                              color: Colors.green.shade400),
-                                          GaugeRange(
-                                              startValue: 35,
-                                              endValue: 45,
-                                              color: Colors.orange.shade400),
-                                          GaugeRange(
-                                              startValue: 45,
-                                              endValue: 60,
-                                              color: Colors.red.shade500),
-                                        ],
-                                        pointers: [
-                                            NeedlePointer(
-                                                animationDuration: 1000,
-                                                enableAnimation: true,
-                                                value: snapshot.data?.toDouble() ?? 0,
-                                                needleLength: 0.45,
-                                                gradient: LinearGradient(colors: [
-                                                  Colors.deepPurple.shade900,
-                                                  Colors.pink.shade200,
-                                                ]))
-                                        ])
-                                  ]),
-                              Positioned(
-                                child: Text(
-                                  "${snapshot.data}°C",
-                                  textAlign: TextAlign.center,
-                                ),
-                                bottom: 20,
-                                left: 0,
-                                right: 0,
+      ),
+      child: Center(
+        child: ListView(
+          children: <Widget>[
+            Row(
+              children: [
+                Expanded(
+                  child: StreamBuilder<int>(
+                      stream: tempStream,
+                      initialData: 0,
+                      builder: (context, snapshot) {
+                        return GridCard(
+                          backgroundColor: Colors.amber.shade50,
+                          child: Stack(children: [
+                            SfRadialGauge(
+                                key: Key("temperatureGauge"),
+                                title: GaugeTitle(text: "Temperature"),
+                                axes: [
+                                  RadialAxis(
+                                      startAngle: 150,
+                                      endAngle: 30,
+                                      minimum: -20,
+                                      maximum: 60,
+                                      ranges: [
+                                        GaugeRange(
+                                            startValue: -20,
+                                            endValue: 0,
+                                            color: Colors.cyan.shade200),
+                                        GaugeRange(
+                                            startValue: 0,
+                                            endValue: 20,
+                                            color: Colors.lightBlue.shade600),
+                                        GaugeRange(
+                                            startValue: 20,
+                                            endValue: 35,
+                                            color: Colors.green.shade400),
+                                        GaugeRange(
+                                            startValue: 35,
+                                            endValue: 45,
+                                            color: Colors.orange.shade400),
+                                        GaugeRange(
+                                            startValue: 45,
+                                            endValue: 60,
+                                            color: Colors.red.shade500),
+                                      ],
+                                      pointers: [
+                                        NeedlePointer(
+                                            animationDuration: 1000,
+                                            enableAnimation: true,
+                                            value:
+                                                snapshot.data?.toDouble() ?? 0,
+                                            needleLength: 0.45,
+                                            gradient: LinearGradient(colors: [
+                                              Colors.deepPurple.shade900,
+                                              Colors.pink.shade200,
+                                            ]))
+                                      ])
+                                ]),
+                            Positioned(
+                              child: Text(
+                                "${snapshot.data}°C",
+                                textAlign: TextAlign.center,
                               ),
-                            ]),
-                          );
-                        }),
-                  ),
-                  Expanded(
-                    child: StreamBuilder<int>(
+                              bottom: 20,
+                              left: 0,
+                              right: 0,
+                            ),
+                          ]),
+                        );
+                      }),
+                ),
+                Expanded(
+                  child: StreamBuilder<int>(
                       initialData: 0,
                       stream: humidityStream,
                       builder: (context, snapshot) {
@@ -345,7 +428,6 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                               ],
                                             ),
                                           ),
-
                                           GaugeRange(
                                             startValue: 60,
                                             endValue: 80,
@@ -356,28 +438,29 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                                               ],
                                             ),
                                           ),
-
                                           GaugeRange(
-                                              startValue: 80,
-                                              endValue: 100,
-                                              gradient: SweepGradient(
-                                                colors: [
-                                                  Colors.lightBlue.shade400,
-                                                  Colors.blue.shade800,
-                                                ],
-                                              ),
+                                            startValue: 80,
+                                            endValue: 100,
+                                            gradient: SweepGradient(
+                                              colors: [
+                                                Colors.lightBlue.shade400,
+                                                Colors.blue.shade800,
+                                              ],
+                                            ),
                                           ),
                                         ],
                                         pointers: [
-                                            NeedlePointer(
-                                                animationDuration: 1000,
-                                                enableAnimation: true,
-                                                value: snapshot.data?.toDouble() ?? 0,
-                                                needleLength: 0.45,
-                                                gradient: LinearGradient(colors: [
-                                                  Colors.deepPurple.shade900,
-                                                  Colors.pink.shade200,
-                                                ]))
+                                          NeedlePointer(
+                                              animationDuration: 1000,
+                                              enableAnimation: true,
+                                              value:
+                                                  snapshot.data?.toDouble() ??
+                                                      0,
+                                              needleLength: 0.45,
+                                              gradient: LinearGradient(colors: [
+                                                Colors.deepPurple.shade900,
+                                                Colors.pink.shade200,
+                                              ]))
                                         ])
                                   ]),
                               Positioned(
@@ -392,203 +475,311 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
                             ],
                           ),
                         );
-                      }
-                    ),
-                  ),
-                ],
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: StreamBuilder<int>(
-                        initialData: 0,
-                        stream: lightIntensityStream,
-                        builder: (context, snapshot) {
-                          return GridCard(
-                            backgroundColor: Colors.amber.shade50,
-                            child: Stack(
-                              children: [
-                                SfRadialGauge(
-                                    key: Key("intensityGauge"),
-                                    title: GaugeTitle(text: "Light Intensity"),
-                                    axes: [
-                                      RadialAxis(
-                                          startAngle: 150,
-                                          endAngle: 30,
-                                          minimum: 0,
-                                          maximum: 100,
-                                          ranges: [
-                                            GaugeRange(
-                                                startValue: 0,
-                                                endValue: 100,
-                                                gradient: SweepGradient(
-                                                  colors: [
-                                                    Colors.blueGrey.shade900,
-                                                    Colors.yellow.shade400,
-                                                  ],
-                                                ),
-                                            ),
-                                          ],
-                                          pointers: [
-                                            NeedlePointer(
-                                                animationDuration: 1000,
-                                                enableAnimation: true,
-                                                value: snapshot.data?.toDouble() ?? 0,
-                                                needleLength: 0.45,
-                                                gradient: LinearGradient(colors: [
-                                                  Colors.deepPurple.shade900,
-                                                  Colors.pink.shade200,
-                                                ]))
-                                          ])
-                                    ]),
-                                Positioned(
-                                  child: Text(
-                                    "${snapshot.data}%",
-                                    textAlign: TextAlign.center,
-                                  ),
-                                  bottom: 20,
-                                  left: 0,
-                                  right: 0,
-                                ),
-                              ],
-                            ),
-                          );
-                        }
-                    ),
-                  ),
-                  Expanded(
-                    child: Table(
-                      defaultColumnWidth: FlexColumnWidth(),
-                      children: [
-                        TableRow(
+                      }),
+                ),
+              ],
+            ),
+            Row(
+              children: [
+                Expanded(
+                  child: StreamBuilder<int>(
+                    initialData: 0,
+                    stream: lightIntensityStream,
+                    builder: (context, snapshot) {
+                      return GridCard(
+                        backgroundColor: Colors.amber.shade50,
+                        child: Stack(
                           children: [
-                            GridCardButton(
-                              rounded: false,
-                              alpha: arduinoOnline ? 220 : 180,
-                              icon: Icon(arduinoOnline ? Icons.wifi : Icons.wifi_off),
-                              enabled: arduinoOnline,
-                              iconColor: Colors.green,
-                            ),
-                            Hero(
-                              tag: "rgbButton",
-                              child: GridCardButton(
-                                icon: rgbModeIcon,
-                                enabled: rgbStatus,
-                                iconColor: rgbColor,
-                                alpha: rgbStatus ? 255 : 180,
-                                onTap: (){
-                                  pauseRefreshTimer();
-                                  changeRgbStatus(!rgbStatus);
-                                },
-                                onLongPress: () async {
-                                  final newColor = await Navigator.of(context).push(PageRouteBuilder(
-                                    transitionDuration: const Duration(milliseconds: 300),
-                                    fullscreenDialog: true,
-                                    opaque: false,
-                                    pageBuilder: (context, animation, secondaryAnimation){
-                                      return ColorPickerPage(
-                                        initialIcon: rgbModeIcon,
-                                        rgbColor: rgbColor,
-                                        rgbStatus: rgbStatus,
-                                      );
-                                    }
-                                  ));
-                                  setState(() {
-                                    rgbColor = newColor;
-                                  });
-                                },
+                            SfRadialGauge(
+                                key: Key("intensityGauge"),
+                                title: GaugeTitle(text: "Light Intensity"),
+                                axes: [
+                                  RadialAxis(
+                                      startAngle: 150,
+                                      endAngle: 30,
+                                      minimum: 0,
+                                      maximum: 100,
+                                      ranges: [
+                                        GaugeRange(
+                                          startValue: 0,
+                                          endValue: 100,
+                                          gradient: SweepGradient(
+                                            colors: [
+                                              Colors.blueGrey.shade900,
+                                              Colors.yellow.shade400,
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      pointers: [
+                                        NeedlePointer(
+                                            animationDuration: 1000,
+                                            enableAnimation: true,
+                                            value:
+                                                snapshot.data?.toDouble() ?? 0,
+                                            needleLength: 0.45,
+                                            gradient: LinearGradient(colors: [
+                                              Colors.deepPurple.shade900,
+                                              Colors.pink.shade200,
+                                            ]))
+                                      ])
+                                ]),
+                            Positioned(
+                              child: Text(
+                                "${snapshot.data}%",
+                                textAlign: TextAlign.center,
                               ),
+                              bottom: 20,
+                              left: 0,
+                              right: 0,
                             ),
                           ],
                         ),
-
-                        TableRow(
-                          children: [
-                            GridCardButton(
-                              icon: Icon(Icons.invert_colors),
-                              onTap: (){
-                                pauseRefreshTimer();
-                                changePump(!pumpState);
-                              },
-                              alpha: pumpState ? 255 : 180,
-                              enabled: pumpState,
-                              iconColor: Colors.blue,
-                            ),
-                            GridCardButton(
-                              icon: Icon(lightsState ? Icons.lightbulb : Icons.lightbulb_outline),
-                              onTap: (){
-                                pauseRefreshTimer();
-                                changeLights(!lightsState);
-                              },
-                              alpha: lightsState ? 255 : 180,
-                              enabled: lightsState,
-                              iconColor: Colors.yellow.shade600,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
-                ],
-              ),
-              GridCard(
-                aspectRatio: 3.0/2.0,
-                child: FittedBox(
-                  child: Container(
-                    child: Stack(
-                      children: [
+                ),
+                Expanded(
+                  child: StreamBuilder<int>(
+                    initialData: 0,
+                    stream: lightIntensityStream,
+                    builder: (context, snapshot) {
+                      return GridCard(
+                        backgroundColor: Colors.amber.shade50,
+                        child: Stack(
+                          children: [
+                            SfRadialGauge(
+                                key: Key("SolarProduction"),
+                                title: GaugeTitle(text: "Solar Power"),
+                                axes: [
+                                  RadialAxis(
+                                      startAngle: 150,
+                                      endAngle: 30,
+                                      minimum: 0,
+                                      maximum: 100,
+                                      ranges: [
+                                        GaugeRange(
+                                          startValue: 0,
+                                          endValue: 100,
+                                          gradient: SweepGradient(
+                                            colors: [
+                                              Color.fromARGB(255, 15, 72, 84),
+                                              Color.fromARGB(255, 44, 189, 99),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      pointers: [
+                                        NeedlePointer(
+                                            animationDuration: 1000,
+                                            enableAnimation: true,
+                                            value:
+                                                snapshot.data?.toDouble() ?? 0,
+                                            needleLength: 0.45,
+                                            gradient: LinearGradient(colors: [
+                                              Colors.deepPurple.shade900,
+                                              Colors.pink.shade200,
+                                            ]))
+                                      ])
+                                ]),
+                            Positioned(
+                              child: Text(
+                                "${snapshot.data}V",
+                                textAlign: TextAlign.center,
+                              ),
+                              bottom: 20,
+                              left: 0,
+                              right: 0,
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+            GridCard(
+              aspectRatio: 3.0 / 2.0,
+              child: FittedBox(
+                child: Container(
+                  child: Stack(
+                    children: [
+                      Image.asset(
+                        "assets/base.png",
+                        alignment: Alignment.center,
+                      ),
+                      if (lightsState)
                         Image.asset(
-                          "assets/base.png",
+                          "assets/light on.png",
                           alignment: Alignment.center,
                         ),
-                        if(lightsState) Image.asset("assets/light on.png", alignment: Alignment.center,) ,
-                        if(!lightsState) Image.asset("assets/light off.png", alignment: Alignment.center,),
-
-                        if(!pumpState) Image.asset("assets/pump off.png", alignment: Alignment.center,),
-                        if(pumpState) Image.asset("assets/pump on $pumpImage.png", alignment: Alignment.center,),
-
-                        if(arduinoOnline) Image.asset("assets/device on $deviceImage.png", alignment: Alignment.center,),
-                        if(!arduinoOnline) Image.asset("assets/device off.png", alignment: Alignment.center,),
-
-                        Image.asset("assets/rgb off.png", alignment: Alignment.center,),
-                        AnimatedOpacity(
-                          duration: const Duration(milliseconds: 400),
-
-                          opacity: rgbStatus? 1 : 0,
-                          child: rgbMode == 1
-                              ? AnimatedBuilder(
-                                  animation: rainbowAnimationController,
-                                  builder: (context, child){
-                                    return ColorFiltered(
-                                      colorFilter: ColorFilter.mode(HSVColor.fromAHSV(1, rainbowAnimationController.value*360, 1, 1).toColor(), BlendMode.srcATop),
-                                      child: child,
-                                    );
-                                  },
-                                  child: Image.asset("assets/rgb on.png", alignment: Alignment.center,),
-                              )
-                              : rgbMode == 2
-                              ? AnimatedBuilder(
-                            animation: bounceAnimationController,
-                            builder: (context, child){
-                              return ColorFiltered(
-                                colorFilter: ColorFilter.mode(HSVColor.fromAHSV( 1, bounceAnimationController.value*30+HSVColor.fromColor(rgbColor).hue, 1, 1).toColor(), BlendMode.srcATop),
-                                child: child,
-                              );
-                            },
-                            child: Image.asset("assets/rgb on.png", alignment: Alignment.center,),
-                          )
-                              : ColorFiltered(
-                            colorFilter: ColorFilter.mode(rgbColor, BlendMode.srcATop),
-                            child: Image.asset("assets/rgb on.png", alignment: Alignment.center,),
-                          ),
+                      if (!lightsState)
+                        Image.asset(
+                          "assets/light off.png",
+                          alignment: Alignment.center,
                         ),
-                      ],
-                    ),
+                      if (!pumpState)
+                        Image.asset(
+                          "assets/pump off.png",
+                          alignment: Alignment.center,
+                        ),
+                      if (pumpState)
+                        Image.asset(
+                          "assets/pump on $pumpImage.png",
+                          alignment: Alignment.center,
+                        ),
+                      if (arduinoOnline)
+                        Image.asset(
+                          "assets/device on $deviceImage.png",
+                          alignment: Alignment.center,
+                        ),
+                      if (!arduinoOnline)
+                        Image.asset(
+                          "assets/device off.png",
+                          alignment: Alignment.center,
+                        ),
+                      Image.asset(
+                        "assets/rgb off.png",
+                        alignment: Alignment.center,
+                      ),
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 400),
+                        opacity: rgbStatus ? 1 : 0,
+                        child: rgbMode == 1
+                            ? AnimatedBuilder(
+                                animation: rainbowAnimationController,
+                                builder: (context, child) {
+                                  return ColorFiltered(
+                                    colorFilter: ColorFilter.mode(
+                                        HSVColor.fromAHSV(
+                                                1,
+                                                rainbowAnimationController
+                                                        .value *
+                                                    360,
+                                                1,
+                                                1)
+                                            .toColor(),
+                                        BlendMode.srcATop),
+                                    child: child,
+                                  );
+                                },
+                                child: Image.asset(
+                                  "assets/rgb on.png",
+                                  alignment: Alignment.center,
+                                ),
+                              )
+                            : rgbMode == 2
+                                ? AnimatedBuilder(
+                                    animation: bounceAnimationController,
+                                    builder: (context, child) {
+                                      return ColorFiltered(
+                                        colorFilter: ColorFilter.mode(
+                                            HSVColor.fromAHSV(
+                                                    1,
+                                                    bounceAnimationController
+                                                                .value *
+                                                            30 +
+                                                        HSVColor.fromColor(
+                                                                rgbColor)
+                                                            .hue,
+                                                    1,
+                                                    1)
+                                                .toColor(),
+                                            BlendMode.srcATop),
+                                        child: child,
+                                      );
+                                    },
+                                    child: Image.asset(
+                                      "assets/rgb on.png",
+                                      alignment: Alignment.center,
+                                    ),
+                                  )
+                                : ColorFiltered(
+                                    colorFilter: ColorFilter.mode(
+                                        rgbColor, BlendMode.srcATop),
+                                    child: Image.asset(
+                                      "assets/rgb on.png",
+                                      alignment: Alignment.center,
+                                    ),
+                                  ),
+                      ),
+                    ],
                   ),
                 ),
               ),
-            ],
-          ),
+            ),
+            Table(
+              defaultColumnWidth: FlexColumnWidth(),
+              children: [
+                TableRow(
+                  children: [
+                    GridCardButton(
+                      rounded: false,
+                      alpha: arduinoOnline ? 220 : 180,
+                      icon: Icon(arduinoOnline ? Icons.wifi : Icons.wifi_off),
+                      enabled: arduinoOnline,
+                      iconColor: Colors.green,
+                    ),
+                    GridCardButton(
+                      icon: Icon(Icons.invert_colors),
+                      onTap: () {
+                        pauseRefreshTimer();
+                        changePump(!pumpState);
+                      },
+                      alpha: pumpState ? 255 : 180,
+                      enabled: pumpState,
+                      iconColor: Colors.blue,
+                    ),
+                    GridCardButton(
+                      icon: Icon(lightsState
+                          ? Icons.lightbulb
+                          : Icons.lightbulb_outline),
+                      onTap: () {
+                        pauseRefreshTimer();
+                        changeLights(!lightsState);
+                      },
+                      alpha: lightsState ? 255 : 180,
+                      enabled: lightsState,
+                      iconColor: Colors.yellow.shade600,
+                    ),
+                    Hero(
+                      tag: "rgbButton",
+                      child: GridCardButton(
+                        icon: rgbModeIcon,
+                        enabled: rgbStatus,
+                        iconColor: rgbColor,
+                        alpha: rgbStatus ? 255 : 180,
+                        onTap: () {
+                          pauseRefreshTimer();
+                          changeRgbStatus(!rgbStatus);
+                        },
+                        onLongPress: () async {
+                          final newColor = await Navigator.of(context).push(
+                              PageRouteBuilder(
+                                  transitionDuration:
+                                      const Duration(milliseconds: 300),
+                                  fullscreenDialog: true,
+                                  opaque: false,
+                                  pageBuilder:
+                                      (context, animation, secondaryAnimation) {
+                                    return ColorPickerPage(
+                                      initialIcon: rgbModeIcon,
+                                      rgbColor: rgbColor,
+                                      rgbStatus: rgbStatus,
+                                    );
+                                  }));
+                          setState(() {
+                            rgbColor = newColor;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -619,6 +810,137 @@ class _MyHomePageState extends State<MyHomePage> with TickerProviderStateMixin {
     });
     setDataField("rgbMode", newVal);
   }
+}
 
+class GraphsPage extends StatefulWidget {
+  const GraphsPage({Key key}) : super(key: key);
 
+  @override
+  State<GraphsPage> createState() => _GraphsPageState();
+}
+
+///JSUT DEMO FOR GRAPHS DELETUS AFTER
+class GraphDataDemo {}
+
+class _GraphsPageState extends State<GraphsPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.pink.shade600,
+              Colors.amber.shade900,
+            ],
+          ),
+        ),
+        child: Center(
+          child: ListView(children: <Widget>[
+            Row(
+              children: [
+                Expanded(
+                  child: GridCard(
+                    child: ListView(
+                      children: <Widget>[
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Center(
+                                child: Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                      0.0, 10.0, 0.0, 0.0),
+                                  child: Text(
+                                    'Temperature History',
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: Container(
+                                child: SfCartesianChart(),
+                                margin: const EdgeInsets.fromLTRB(
+                                    10.0, 18.0, 22.0, 6.0),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ]),
+        ),
+      ),
+    );
+  }
+}
+
+class SchedulePage extends StatefulWidget {
+  const SchedulePage({Key key}) : super(key: key);
+
+  @override
+  State<SchedulePage> createState() => _SchedulePageState();
+}
+
+class _SchedulePageState extends State<SchedulePage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.pink.shade600,
+              Colors.amber.shade900,
+            ],
+          ),
+        ),
+        child: Center(
+          child: Text("Schedule Page"),
+        ),
+      ),
+    );
+  }
+}
+
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({Key key}) : super(key: key);
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.pink.shade600,
+              Colors.amber.shade900,
+            ],
+          ),
+        ),
+        child: Center(
+          child: Text("Settings Page"),
+        ),
+      ),
+    );
+  }
 }
