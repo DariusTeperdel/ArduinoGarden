@@ -4,7 +4,6 @@ import 'package:arduino_garden/color_picker_page.dart';
 import 'package:flutter/material.dart';
 import 'package:syncfusion_flutter_gauges/gauges.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import 'package:intl/intl.dart';
 
 import 'grid_card.dart';
 import 'network.dart';
@@ -333,6 +332,186 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
       child: Center(
         child: ListView(
           children: <Widget>[
+            GridCard(
+              aspectRatio: 3.0 / 2.0,
+              child: FittedBox(
+                child: Container(
+                  child: Stack(
+                    children: [
+                      Image.asset(
+                        "assets/base.png",
+                        alignment: Alignment.center,
+                      ),
+                      if (lightsState)
+                        Image.asset(
+                          "assets/light on.png",
+                          alignment: Alignment.center,
+                        ),
+                      if (!lightsState)
+                        Image.asset(
+                          "assets/light off.png",
+                          alignment: Alignment.center,
+                        ),
+                      if (!pumpState)
+                        Image.asset(
+                          "assets/pump off.png",
+                          alignment: Alignment.center,
+                        ),
+                      if (pumpState)
+                        Image.asset(
+                          "assets/pump on $pumpImage.png",
+                          alignment: Alignment.center,
+                        ),
+                      if (arduinoOnline)
+                        Image.asset(
+                          "assets/device on $deviceImage.png",
+                          alignment: Alignment.center,
+                        ),
+                      if (!arduinoOnline)
+                        Image.asset(
+                          "assets/device off.png",
+                          alignment: Alignment.center,
+                        ),
+                      Image.asset(
+                        "assets/rgb off.png",
+                        alignment: Alignment.center,
+                      ),
+                      AnimatedOpacity(
+                        duration: const Duration(milliseconds: 400),
+                        opacity: rgbStatus ? 1 : 0,
+                        child: rgbMode == 1
+                            ? AnimatedBuilder(
+                                animation: rainbowAnimationController,
+                                builder: (context, child) {
+                                  return ColorFiltered(
+                                    colorFilter: ColorFilter.mode(
+                                        HSVColor.fromAHSV(
+                                                1,
+                                                rainbowAnimationController
+                                                        .value *
+                                                    360,
+                                                1,
+                                                1)
+                                            .toColor(),
+                                        BlendMode.srcATop),
+                                    child: child,
+                                  );
+                                },
+                                child: Image.asset(
+                                  "assets/rgb on.png",
+                                  alignment: Alignment.center,
+                                ),
+                              )
+                            : rgbMode == 2
+                                ? AnimatedBuilder(
+                                    animation: bounceAnimationController,
+                                    builder: (context, child) {
+                                      return ColorFiltered(
+                                        colorFilter: ColorFilter.mode(
+                                            HSVColor.fromAHSV(
+                                                    1,
+                                                    bounceAnimationController
+                                                                .value *
+                                                            30 +
+                                                        HSVColor.fromColor(
+                                                                rgbColor)
+                                                            .hue,
+                                                    1,
+                                                    1)
+                                                .toColor(),
+                                            BlendMode.srcATop),
+                                        child: child,
+                                      );
+                                    },
+                                    child: Image.asset(
+                                      "assets/rgb on.png",
+                                      alignment: Alignment.center,
+                                    ),
+                                  )
+                                : ColorFiltered(
+                                    colorFilter: ColorFilter.mode(
+                                        rgbColor, BlendMode.srcATop),
+                                    child: Image.asset(
+                                      "assets/rgb on.png",
+                                      alignment: Alignment.center,
+                                    ),
+                                  ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            Table(
+              defaultColumnWidth: FlexColumnWidth(),
+              children: [
+                TableRow(
+                  children: [
+                    GridCardButton(
+                      rounded: false,
+                      alpha: arduinoOnline ? 220 : 180,
+                      icon: Icon(arduinoOnline ? Icons.wifi : Icons.wifi_off),
+                      enabled: arduinoOnline,
+                      iconColor: Colors.green,
+                    ),
+                    GridCardButton(
+                      icon: Icon(Icons.invert_colors),
+                      onTap: () {
+                        pauseRefreshTimer();
+                        changePump(!pumpState);
+                      },
+                      alpha: pumpState ? 255 : 180,
+                      enabled: pumpState,
+                      iconColor: Colors.blue,
+                    ),
+                    GridCardButton(
+                      icon: Icon(lightsState
+                          ? Icons.lightbulb
+                          : Icons.lightbulb_outline),
+                      onTap: () {
+                        pauseRefreshTimer();
+                        changeLights(!lightsState);
+                      },
+                      alpha: lightsState ? 255 : 180,
+                      enabled: lightsState,
+                      iconColor: Colors.yellow.shade600,
+                    ),
+                    Hero(
+                      tag: "rgbButton",
+                      child: GridCardButton(
+                        icon: rgbModeIcon,
+                        enabled: rgbStatus,
+                        iconColor: rgbColor,
+                        alpha: rgbStatus ? 255 : 180,
+                        onTap: () {
+                          pauseRefreshTimer();
+                          changeRgbStatus(!rgbStatus);
+                        },
+                        onLongPress: () async {
+                          final newColor = await Navigator.of(context).push(
+                              PageRouteBuilder(
+                                  transitionDuration:
+                                      const Duration(milliseconds: 300),
+                                  fullscreenDialog: true,
+                                  opaque: false,
+                                  pageBuilder:
+                                      (context, animation, secondaryAnimation) {
+                                    return ColorPickerPage(
+                                      initialIcon: rgbModeIcon,
+                                      rgbColor: rgbColor,
+                                      rgbStatus: rgbStatus,
+                                    );
+                                  }));
+                          setState(() {
+                            rgbColor = newColor;
+                          });
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
             Row(
               children: [
                 Expanded(
@@ -600,186 +779,6 @@ class _MainPageState extends State<MainPage> with TickerProviderStateMixin {
                 ),
               ],
             ),
-            GridCard(
-              aspectRatio: 3.0 / 2.0,
-              child: FittedBox(
-                child: Container(
-                  child: Stack(
-                    children: [
-                      Image.asset(
-                        "assets/base.png",
-                        alignment: Alignment.center,
-                      ),
-                      if (lightsState)
-                        Image.asset(
-                          "assets/light on.png",
-                          alignment: Alignment.center,
-                        ),
-                      if (!lightsState)
-                        Image.asset(
-                          "assets/light off.png",
-                          alignment: Alignment.center,
-                        ),
-                      if (!pumpState)
-                        Image.asset(
-                          "assets/pump off.png",
-                          alignment: Alignment.center,
-                        ),
-                      if (pumpState)
-                        Image.asset(
-                          "assets/pump on $pumpImage.png",
-                          alignment: Alignment.center,
-                        ),
-                      if (arduinoOnline)
-                        Image.asset(
-                          "assets/device on $deviceImage.png",
-                          alignment: Alignment.center,
-                        ),
-                      if (!arduinoOnline)
-                        Image.asset(
-                          "assets/device off.png",
-                          alignment: Alignment.center,
-                        ),
-                      Image.asset(
-                        "assets/rgb off.png",
-                        alignment: Alignment.center,
-                      ),
-                      AnimatedOpacity(
-                        duration: const Duration(milliseconds: 400),
-                        opacity: rgbStatus ? 1 : 0,
-                        child: rgbMode == 1
-                            ? AnimatedBuilder(
-                                animation: rainbowAnimationController,
-                                builder: (context, child) {
-                                  return ColorFiltered(
-                                    colorFilter: ColorFilter.mode(
-                                        HSVColor.fromAHSV(
-                                                1,
-                                                rainbowAnimationController
-                                                        .value *
-                                                    360,
-                                                1,
-                                                1)
-                                            .toColor(),
-                                        BlendMode.srcATop),
-                                    child: child,
-                                  );
-                                },
-                                child: Image.asset(
-                                  "assets/rgb on.png",
-                                  alignment: Alignment.center,
-                                ),
-                              )
-                            : rgbMode == 2
-                                ? AnimatedBuilder(
-                                    animation: bounceAnimationController,
-                                    builder: (context, child) {
-                                      return ColorFiltered(
-                                        colorFilter: ColorFilter.mode(
-                                            HSVColor.fromAHSV(
-                                                    1,
-                                                    bounceAnimationController
-                                                                .value *
-                                                            30 +
-                                                        HSVColor.fromColor(
-                                                                rgbColor)
-                                                            .hue,
-                                                    1,
-                                                    1)
-                                                .toColor(),
-                                            BlendMode.srcATop),
-                                        child: child,
-                                      );
-                                    },
-                                    child: Image.asset(
-                                      "assets/rgb on.png",
-                                      alignment: Alignment.center,
-                                    ),
-                                  )
-                                : ColorFiltered(
-                                    colorFilter: ColorFilter.mode(
-                                        rgbColor, BlendMode.srcATop),
-                                    child: Image.asset(
-                                      "assets/rgb on.png",
-                                      alignment: Alignment.center,
-                                    ),
-                                  ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Table(
-              defaultColumnWidth: FlexColumnWidth(),
-              children: [
-                TableRow(
-                  children: [
-                    GridCardButton(
-                      rounded: false,
-                      alpha: arduinoOnline ? 220 : 180,
-                      icon: Icon(arduinoOnline ? Icons.wifi : Icons.wifi_off),
-                      enabled: arduinoOnline,
-                      iconColor: Colors.green,
-                    ),
-                    GridCardButton(
-                      icon: Icon(Icons.invert_colors),
-                      onTap: () {
-                        pauseRefreshTimer();
-                        changePump(!pumpState);
-                      },
-                      alpha: pumpState ? 255 : 180,
-                      enabled: pumpState,
-                      iconColor: Colors.blue,
-                    ),
-                    GridCardButton(
-                      icon: Icon(lightsState
-                          ? Icons.lightbulb
-                          : Icons.lightbulb_outline),
-                      onTap: () {
-                        pauseRefreshTimer();
-                        changeLights(!lightsState);
-                      },
-                      alpha: lightsState ? 255 : 180,
-                      enabled: lightsState,
-                      iconColor: Colors.yellow.shade600,
-                    ),
-                    Hero(
-                      tag: "rgbButton",
-                      child: GridCardButton(
-                        icon: rgbModeIcon,
-                        enabled: rgbStatus,
-                        iconColor: rgbColor,
-                        alpha: rgbStatus ? 255 : 180,
-                        onTap: () {
-                          pauseRefreshTimer();
-                          changeRgbStatus(!rgbStatus);
-                        },
-                        onLongPress: () async {
-                          final newColor = await Navigator.of(context).push(
-                              PageRouteBuilder(
-                                  transitionDuration:
-                                      const Duration(milliseconds: 300),
-                                  fullscreenDialog: true,
-                                  opaque: false,
-                                  pageBuilder:
-                                      (context, animation, secondaryAnimation) {
-                                    return ColorPickerPage(
-                                      initialIcon: rgbModeIcon,
-                                      rgbColor: rgbColor,
-                                      rgbStatus: rgbStatus,
-                                    );
-                                  }));
-                          setState(() {
-                            rgbColor = newColor;
-                          });
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
           ],
         ),
       ),
@@ -835,19 +834,23 @@ List<GraphDataDemo> getGraphDataDemo() {
     GraphDataDemo(13, 23.1),
     GraphDataDemo(14, 24.2),
     GraphDataDemo(15, 23.6),
-    GraphDataDemo(16, 24.7),
-    GraphDataDemo(17, 25.4)
+    GraphDataDemo(16, 24.7)
   ];
+
+  //TODO: make charts show only last 7 recorded values, swipe right on card
+  // shows previous 7 and swipe left shows next 7 if available
 
   return chartData;
 }
 
 class _GraphsPageState extends State<GraphsPage> {
   List<GraphDataDemo> _chartData;
+  TooltipBehavior _tooltipBehavior;
 
   @override
   void initState() {
     _chartData = getGraphDataDemo();
+    _tooltipBehavior = TooltipBehavior(enable: true);
     super.initState();
   }
 
@@ -875,130 +878,15 @@ class _GraphsPageState extends State<GraphsPage> {
                       child: Container(
                         child: SfCartesianChart(
                           title: ChartTitle(text: 'Temperature History'),
+                          legend: Legend(isVisible: false),
+                          tooltipBehavior: _tooltipBehavior,
                           primaryXAxis: NumericAxis(
                               edgeLabelPlacement: EdgeLabelPlacement.shift),
+                          primaryYAxis: NumericAxis(labelFormat: '{value}°C'),
                           series: <ChartSeries>[
                             LineSeries<GraphDataDemo, double>(
-                              dataSource: _chartData,
-                              xValueMapper: (GraphDataDemo graph, _) =>
-                                  graph.time,
-                              yValueMapper: (GraphDataDemo graph, _) =>
-                                  graph.value,
-                              dataLabelSettings:
-                                  DataLabelSettings(isVisible: true),
-                            )
-                          ],
-                        ),
-                        margin:
-                            const EdgeInsets.fromLTRB(10.0, 18.0, 22.0, 6.0),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: GridCard(
-                    child: Expanded(
-                      child: Container(
-                        child: SfCartesianChart(
-                          title: ChartTitle(text: 'Humidity History'),
-                          primaryXAxis: NumericAxis(
-                              edgeLabelPlacement: EdgeLabelPlacement.shift),
-                          series: <ChartSeries>[
-                            LineSeries<GraphDataDemo, double>(
-                              dataSource: _chartData,
-                              xValueMapper: (GraphDataDemo graph, _) =>
-                                  graph.time,
-                              yValueMapper: (GraphDataDemo graph, _) =>
-                                  graph.value,
-                              dataLabelSettings:
-                                  DataLabelSettings(isVisible: true),
-                            )
-                          ],
-                        ),
-                        margin:
-                            const EdgeInsets.fromLTRB(10.0, 18.0, 22.0, 6.0),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: GridCard(
-                    child: Expanded(
-                      child: Container(
-                        child: SfCartesianChart(
-                          title: ChartTitle(text: 'Light Intensity History'),
-                          primaryXAxis: NumericAxis(
-                              edgeLabelPlacement: EdgeLabelPlacement.shift),
-                          series: <ChartSeries>[
-                            LineSeries<GraphDataDemo, double>(
-                              dataSource: _chartData,
-                              xValueMapper: (GraphDataDemo graph, _) =>
-                                  graph.time,
-                              yValueMapper: (GraphDataDemo graph, _) =>
-                                  graph.value,
-                              dataLabelSettings:
-                                  DataLabelSettings(isVisible: true),
-                            )
-                          ],
-                        ),
-                        margin:
-                            const EdgeInsets.fromLTRB(10.0, 18.0, 22.0, 6.0),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: GridCard(
-                    child: Expanded(
-                      child: Container(
-                        child: SfCartesianChart(
-                          title: ChartTitle(text: 'Solar Power History'),
-                          primaryXAxis: NumericAxis(
-                              edgeLabelPlacement: EdgeLabelPlacement.shift),
-                          series: <ChartSeries>[
-                            LineSeries<GraphDataDemo, double>(
-                              dataSource: _chartData,
-                              xValueMapper: (GraphDataDemo graph, _) =>
-                                  graph.time,
-                              yValueMapper: (GraphDataDemo graph, _) =>
-                                  graph.value,
-                              dataLabelSettings:
-                                  DataLabelSettings(isVisible: true),
-                            )
-                          ],
-                        ),
-                        margin:
-                            const EdgeInsets.fromLTRB(10.0, 18.0, 22.0, 6.0),
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              children: [
-                Expanded(
-                  child: GridCard(
-                    child: Expanded(
-                      child: Container(
-                        child: SfCartesianChart(
-                          title: ChartTitle(text: 'Battery Level History'),
-                          primaryXAxis: NumericAxis(
-                              edgeLabelPlacement: EdgeLabelPlacement.shift),
-                          series: <ChartSeries>[
-                            LineSeries<GraphDataDemo, double>(
+                              name: 'Temperature History',
+                              enableTooltip: true,
                               dataSource: _chartData,
                               xValueMapper: (GraphDataDemo graph, _) =>
                                   graph.time,
