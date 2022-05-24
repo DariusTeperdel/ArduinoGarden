@@ -37,7 +37,11 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Arduino Garden"),
+        title: Text(
+          Provider.of<StateHandler>(context).currentGarden == null
+              ? "Arduino Garden"
+              : Provider.of<StateHandler>(context).currentGarden!.name,
+        ),
         actions: [
           if (Provider.of<StateHandler>(context).gardens.isNotEmpty) ...[
             PopupMenuButton(
