@@ -22,6 +22,7 @@ Garden _$GardenFromJson(Map<String, dynamic> json) => Garden(
           PumpSchedule.fromJson(json['pumpSchedule'] as Map<String, dynamic>),
       lightSchedule:
           LightSchedule.fromJson(json['lightSchedule'] as Map<String, dynamic>),
+      gardenToken: json['gardenToken'] as String,
     );
 
 Map<String, dynamic> _$GardenToJson(Garden instance) => <String, dynamic>{
@@ -38,6 +39,7 @@ Map<String, dynamic> _$GardenToJson(Garden instance) => <String, dynamic>{
       'batteryVoltage': instance.batteryVoltage,
       'pumpSchedule': instance.pumpSchedule,
       'lightSchedule': instance.lightSchedule,
+      'gardenToken': instance.gardenToken,
     };
 
 RGB _$RGBFromJson(Map<String, dynamic> json) => RGB(

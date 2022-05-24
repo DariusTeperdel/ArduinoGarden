@@ -19,6 +19,7 @@ class Garden {
   final int batteryVoltage;
   final PumpSchedule pumpSchedule;
   final LightSchedule lightSchedule;
+  final String gardenToken;
 
   Garden({
     required this.id,
@@ -34,6 +35,7 @@ class Garden {
     required this.batteryVoltage,
     required this.pumpSchedule,
     required this.lightSchedule,
+    required this.gardenToken,
   });
 
   factory Garden.fromJson(Map<String, dynamic> json) => _$GardenFromJson(json);
@@ -42,7 +44,7 @@ class Garden {
 
   @override
   String toString() {
-    return 'Garden($id, $name, $pump, $sunFollow, $lights, $rgb, $temperature, $humidity, $lightIntensity, $solarVoltage, $batteryVoltage, $pumpSchedule, $lightSchedule)';
+    return 'Garden($id, $name, $pump, $sunFollow, $lights, $rgb, $temperature, $humidity, $lightIntensity, $solarVoltage, $batteryVoltage, $pumpSchedule, $lightSchedule, $gardenToken)';
   }
 }
 

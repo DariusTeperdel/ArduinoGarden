@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:arduino_garden/config/config.dart';
 import 'package:arduino_garden/config/state_handler.dart';
-import 'package:arduino_garden/models/garden.dart';
 import 'package:arduino_garden/widgets/grid_card.dart';
 import 'package:arduino_garden/widgets/color_picker.dart';
 import 'package:flutter/material.dart';
@@ -693,7 +693,10 @@ class _StatsPageState extends State<StatsPage> with TickerProviderStateMixin {
   void changePump(bool newVal) {
     pumpStreamController.sink.add(newVal);
     //TODO: FIX THIS
-    //setDataField("pump", newVal ? 1 : 0);
+    api.userUpdateData(
+        Provider.of<StateHandler>(context, listen: false).token!,
+        Provider.of<StateHandler>(context, listen: false).currentGarden!.id,
+        {'pump': newVal ? 1 : 0});
   }
 
   void changeLights(bool newVal) {
@@ -701,22 +704,19 @@ class _StatsPageState extends State<StatsPage> with TickerProviderStateMixin {
       lightsState = newVal;
     });
     //TODO: FIX THIS\
-    //setDataField("lights", newVal ? 1 : 0);
+    api.userUpdateData(
+        Provider.of<StateHandler>(context, listen: false).token!,
+        Provider.of<StateHandler>(context, listen: false).currentGarden!.id,
+        {'lights': newVal ? 1 : 0});
   }
 
   void changeRgbStatus(bool newVal) {
     setState(() {
       rgbStatus = newVal;
     });
-    //TODO: FIX THIS
-    // setDataField("rgbStatus", newVal ? 1 : 0);
-  }
-
-  void changeRgbMode(int newVal) {
-    setState(() {
-      rgbMode = newVal;
-    });
-    //TODO: FIX THIS
-    // setDataField("rgbMode", newVal);
+    api.userUpdateData(
+        Provider.of<StateHandler>(context, listen: false).token!,
+        Provider.of<StateHandler>(context, listen: false).currentGarden!.id,
+        {'RGB.power': newVal ? 1 : 0});
   }
 }

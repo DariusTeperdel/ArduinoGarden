@@ -65,7 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     .setCurrentGarden(
                         Provider.of<StateHandler>(context, listen: false)
                             .gardens![newGarden]);
-                Provider.of<StateHandler>(context, listen: false).updateAll();
+                Provider.of<StateHandler>(context, listen: false)
+                    .setGardenIndex(newGarden);
               });
             },
           ),

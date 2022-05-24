@@ -1,4 +1,4 @@
 import 'package:arduino_garden/config/api.dart';
 
-final Uri host = Uri.parse('http://192.168.1.165:5001');
+final Uri host = Uri.parse('https://7273-86-125-233-127.eu.ngrok.io');
 final api = ArduinoGardenApi(host);

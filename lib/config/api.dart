@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:arduino_garden/models/garden.dart';
 import 'package:arduino_garden/models/user.dart';
 import 'package:http/http.dart' as http;
 
@@ -63,12 +64,29 @@ class ArduinoGardenApi {
     return User.fromJson(result['message']);
   }
 
-  Future<void> createGarden(String token, String name) async {
+  Future<Garden> createGarden(String token, String name) async {
     final payload = {
       "name": name,
     };
     final data = await http.post(
       uriFor('/api/garden/createGarden'),
+      body: json.encode(payload),
+      headers: {
+        "x-auth-token": token,
+        "Content-Type": "application/json",
+      },
+    );
+    final result = jsonDecode(data.body);
+    if (result['error']) {
+      throw Exception(result["message"]);
+    }
+    return Garden.fromJson(result['message']);
+  }
+
+  Future<void> userUpdateData(
+      String token, String gardenId, Object payload) async {
+    final data = await http.post(
+      uriFor('/api/garden/userUpdateData/' + gardenId),
       body: json.encode(payload),
       headers: {
         "x-auth-token": token,

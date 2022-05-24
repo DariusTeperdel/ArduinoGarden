@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class StateHandler extends ChangeNotifier {
   String? token;
+  int gardenIndex = 0;
   Garden? currentGarden;
   User? userInfo;
   List<Garden>? gardens;
@@ -40,6 +41,20 @@ class StateHandler extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setGardenIndex(int idx) async {
+    gardenIndex = idx;
+    notifyListeners();
+  }
+
+  Future<void> setPrimaryGarden() async {
+    gardens = userInfo!.gardens;
+    if (gardens!.isNotEmpty) {
+      currentGarden = gardens![0];
+      gardenIndex = 0;
+    }
+    notifyListeners();
+  }
+
   Future<void> updateToken(String token) async {
     this.token = token;
     final preferences = await SharedPreferences.getInstance();
@@ -60,16 +75,19 @@ class StateHandler extends ChangeNotifier {
     } else {
       userInfo = await api.getOwnUser(token!);
       gardens = userInfo!.gardens;
-      if (gardens!.isNotEmpty) {
-        currentGarden = gardens![0];
-      }
     }
+    notifyListeners();
+  }
+
+  Future<void> updateGarden() async {
+    currentGarden = gardens![gardenIndex];
     notifyListeners();
   }
 
   Future<void> updateAll() async {
     await Future.wait([
       updateUser(),
+      updateGarden(),
     ]);
   }
 }

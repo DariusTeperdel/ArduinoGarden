@@ -1,6 +1,9 @@
 import 'dart:ui';
+import 'package:arduino_garden/config/config.dart';
+import 'package:arduino_garden/config/state_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_colorpicker/flutter_colorpicker.dart';
+import 'package:provider/provider.dart';
 import 'grid_card.dart';
 
 class ColorPickerWidget extends StatefulWidget {
@@ -56,32 +59,26 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget> {
     super.initState();
   }
 
-  void changeRgbStatus(bool newVal) {
-    setState(() {
-      rgbStatus = newVal;
-    });
-    //TODO: FIX THIS
-
-    // setDataField("rgbStatus", newVal ? 1 : 0);
-  }
-
   void changeRgbColor(Color newColor) {
     setState(() {
       rgbColor = newColor;
     });
-    //TODO: FIX THIS
-
-    // setDataField(
-    //     "rgbColor", "${rgbColor.red},${rgbColor.green},${rgbColor.blue}");
+    //TODO: CHECK IF WORKS
+    api.userUpdateData(
+        Provider.of<StateHandler>(context, listen: false).token!,
+        Provider.of<StateHandler>(context, listen: false).currentGarden!.id,
+        {'RGB.color': "${rgbColor.red},${rgbColor.green},${rgbColor.blue}"});
   }
 
   void changeRgbMode(int newVal) {
     setState(() {
       rgbMode = newVal;
     });
-    //TODO: FIX THIS
-
-    // setDataField("rgbMode", newVal);
+    //TODO: CHECK IF WORKS
+    api.userUpdateData(
+        Provider.of<StateHandler>(context, listen: false).token!,
+        Provider.of<StateHandler>(context, listen: false).currentGarden!.id,
+        {'RGB.mode': newVal});
   }
 
   void pauseRefreshTimer() {}
