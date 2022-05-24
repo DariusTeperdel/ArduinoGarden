@@ -1,5 +1,6 @@
 import 'package:arduino_garden/config/state_handler.dart';
 import 'package:arduino_garden/popups/create_garden.dart';
+import 'package:arduino_garden/popups/list_gardens.dart';
 import 'package:arduino_garden/screens/login.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -31,6 +32,20 @@ class _SettingsPageState extends State<SettingsPage> {
           mainAxisAlignment: MainAxisAlignment.start,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            MaterialButton(
+              onPressed: () async {
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return const ListGardens();
+                    });
+              },
+              color: Colors.pink,
+              child: Text(
+                'List gardens',
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
             MaterialButton(
               onPressed: () async {
                 showDialog(

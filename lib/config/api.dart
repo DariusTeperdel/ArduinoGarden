@@ -99,4 +99,19 @@ class ArduinoGardenApi {
     }
     return result['message'];
   }
+
+  Future<void> deleteGarden(String token, String gardenId) async {
+    final data = await http.delete(
+      uriFor('/api/garden/deleteGarden/' + gardenId),
+      headers: {
+        "x-auth-token": token,
+        "Content-Type": "application/json",
+      },
+    );
+    final result = jsonDecode(data.body);
+    if (result['error']) {
+      throw Exception(result["message"]);
+    }
+    return result['message'];
+  }
 }

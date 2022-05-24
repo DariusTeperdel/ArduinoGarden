@@ -59,7 +59,7 @@ class _StatsPageState extends State<StatsPage> with TickerProviderStateMixin {
   }
 
   bool get arduinoOnline {
-    return arduinoLastActive < 30;
+    return arduinoLastActive < 1;
   }
 
   void delayedStartRefreshTimer() {
