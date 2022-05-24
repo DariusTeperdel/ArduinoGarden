@@ -112,6 +112,11 @@ class _StatsPageState extends State<StatsPage> with TickerProviderStateMixin {
         lightsState = Provider.of<StateHandler>(context, listen: false)
             .currentGarden!
             .lights;
+        arduinoLastActive = DateTime.now()
+            .difference(Provider.of<StateHandler>(context, listen: false)
+                .currentGarden!
+                .lastOnline)
+            .inSeconds;
         setState(() {});
       }
     });
