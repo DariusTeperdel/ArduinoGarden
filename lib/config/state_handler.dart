@@ -9,7 +9,7 @@ class StateHandler extends ChangeNotifier {
   int gardenIndex = 0;
   Garden? currentGarden;
   User? userInfo;
-  List<Garden>? gardens;
+  List<Garden> gardens = [];
 
   static Future<StateHandler> fetchToken() async {
     final handler = StateHandler();
@@ -19,9 +19,9 @@ class StateHandler extends ChangeNotifier {
       try {
         handler.userInfo =
             handler.token == null ? null : await api.getOwnUser(handler.token!);
-        handler.gardens = handler.userInfo!.gardens;
-        if (handler.gardens!.isNotEmpty) {
-          handler.currentGarden = handler.gardens![0];
+        handler.gardens = handler.userInfo!.gardens!;
+        if (handler.gardens.isNotEmpty) {
+          handler.currentGarden = handler.gardens[0];
         }
       } catch (e) {
         return Future.error(e);
@@ -47,9 +47,9 @@ class StateHandler extends ChangeNotifier {
   }
 
   Future<void> setPrimaryGarden() async {
-    gardens = userInfo!.gardens;
-    if (gardens!.isNotEmpty) {
-      currentGarden = gardens![0];
+    gardens = userInfo!.gardens!;
+    if (gardens.isNotEmpty) {
+      currentGarden = gardens[0];
       gardenIndex = 0;
     }
     notifyListeners();
@@ -74,13 +74,13 @@ class StateHandler extends ChangeNotifier {
       userInfo = null;
     } else {
       userInfo = await api.getOwnUser(token!);
-      gardens = userInfo!.gardens;
+      gardens = userInfo!.gardens!;
     }
     notifyListeners();
   }
 
   Future<void> updateGarden() async {
-    currentGarden = gardens![gardenIndex];
+    currentGarden = gardens[gardenIndex];
     notifyListeners();
   }
 

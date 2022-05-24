@@ -13,11 +13,11 @@ Garden _$GardenFromJson(Map<String, dynamic> json) => Garden(
       sunFollow: json['sunFollow'] as bool,
       lights: json['lights'] as bool,
       rgb: RGB.fromJson(json['RGB'] as Map<String, dynamic>),
-      temperature: json['temperature'] as int,
+      temperature: (json['temperature'] as num).toDouble(),
       humidity: json['humidity'] as int,
       lightIntensity: json['lightIntensity'] as int,
-      solarVoltage: json['solarVoltage'] as int,
-      batteryVoltage: json['batteryVoltage'] as int,
+      solarVoltage: (json['solarVoltage'] as num).toDouble(),
+      batteryVoltage: (json['batteryVoltage'] as num).toDouble(),
       pumpSchedule:
           PumpSchedule.fromJson(json['pumpSchedule'] as Map<String, dynamic>),
       lightSchedule:

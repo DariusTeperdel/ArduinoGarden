@@ -27,28 +27,23 @@ class _HomeScreenState extends State<HomeScreen> {
   ];
 
   @override
+  void initState() {
+    Provider.of<StateHandler>(context, listen: false).updateUser();
+    // TODO: implement initState
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text("Arduino Garden"),
         actions: [
-          if (Provider.of<StateHandler>(context, listen: false)
-              .gardens!
-              .isNotEmpty) ...[
+          if (Provider.of<StateHandler>(context).gardens.isNotEmpty) ...[
             PopupMenuButton(
-              // itemBuilder: (context) => [
-              //   const PopupMenuItem(
-              //     value: "garden 1",
-              //     child: Text("garden 1"),
-              //   ),
-              //   const PopupMenuItem(
-              //     value: "garden 2",
-              //     child: Text("garden 2"),
-              //   ),
-              // ],
               itemBuilder: ((context) {
                 List<Garden> gardens =
-                    Provider.of<StateHandler>(context, listen: false).gardens!;
+                    Provider.of<StateHandler>(context, listen: false).gardens;
                 List<PopupMenuItem> items = [];
                 for (var i = 0; i < gardens.length; i++) {
                   items.add(
@@ -62,13 +57,11 @@ class _HomeScreenState extends State<HomeScreen> {
               }),
               icon: Icon(Icons.arrow_drop_down),
               onSelected: (newGarden) {
-                print(Provider.of<StateHandler>(context, listen: false)
-                    .gardens![newGarden as int]);
                 setState(() {
                   Provider.of<StateHandler>(context, listen: false)
                       .setCurrentGarden(
                           Provider.of<StateHandler>(context, listen: false)
-                              .gardens![newGarden]);
+                              .gardens[newGarden as int]);
                   Provider.of<StateHandler>(context, listen: false)
                       .setGardenIndex(newGarden);
                 });
@@ -77,12 +70,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ] else ...[
             MaterialButton(
               onPressed: () async {
-                showDialog(
-                  context: context,
-                  builder: (context) {
-                    return const CreateGarden();
-                  },
-                );
+                setState(() {
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return const CreateGarden();
+                    },
+                  );
+                });
               },
               child: Text('+'),
             ),

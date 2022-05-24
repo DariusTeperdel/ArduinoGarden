@@ -6,9 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:provider/provider.dart';
 
-class CreateGarden extends StatelessWidget {
+class CreateGarden extends StatefulWidget {
   const CreateGarden({Key? key}) : super(key: key);
 
+  @override
+  State<CreateGarden> createState() => _CreateGardenState();
+}
+
+class _CreateGardenState extends State<CreateGarden> {
   @override
   Widget build(BuildContext context) {
     final gardenName = TextEditingController();
@@ -29,12 +34,13 @@ class CreateGarden extends StatelessWidget {
                   Provider.of<StateHandler>(context, listen: false).token!,
                   gardenName.text);
               await Provider.of<StateHandler>(context, listen: false)
-                  .updateAll();
+                  .updateUser();
               FlutterClipboard.copy(garden.gardenToken);
               Fluttertoast.showToast(
                 msg: "Garden token copied to clipoard.",
                 toastLength: Toast.LENGTH_SHORT,
               );
+
               Navigator.of(context).pop();
             },
           ),

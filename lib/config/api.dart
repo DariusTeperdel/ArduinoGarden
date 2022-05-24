@@ -83,7 +83,7 @@ class ArduinoGardenApi {
     return Garden.fromJson(result['message']);
   }
 
-  Future<void> userUpdateData(
+  Future<dynamic> userUpdateData(
       String token, String gardenId, Object payload) async {
     final data = await http.post(
       uriFor('/api/garden/userUpdateData/' + gardenId),

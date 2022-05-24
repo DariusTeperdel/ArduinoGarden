@@ -21,11 +21,11 @@ class _StatsPageState extends State<StatsPage> with TickerProviderStateMixin {
   late Timer pumpImageTimer;
   late Timer deviceImageTimer;
   Timer? restartTimer;
-  late StreamController<int> tempStreamController;
+  late StreamController<double> tempStreamController;
   late StreamController<int> humidityStreamController;
   late StreamController<int> lightIntensityStreamController;
   late StreamController<bool> pumpStreamController;
-  late Stream<int> tempStream;
+  late Stream<double> tempStream;
   late Stream<int> humidityStream;
   late Stream<int> lightIntensityStream;
   late Stream<bool> pumpStream;
@@ -420,7 +420,7 @@ class _StatsPageState extends State<StatsPage> with TickerProviderStateMixin {
             Row(
               children: [
                 Expanded(
-                  child: StreamBuilder<int>(
+                  child: StreamBuilder<double>(
                       stream: tempStream,
                       initialData: 0,
                       builder: (context, snapshot) {
@@ -691,32 +691,32 @@ class _StatsPageState extends State<StatsPage> with TickerProviderStateMixin {
   }
 
   void changePump(bool newVal) {
-    pumpStreamController.sink.add(newVal);
     //TODO: FIX THIS
     api.userUpdateData(
         Provider.of<StateHandler>(context, listen: false).token!,
         Provider.of<StateHandler>(context, listen: false).currentGarden!.id,
         {'pump': newVal ? 1 : 0});
+    pumpStreamController.sink.add(newVal);
   }
 
   void changeLights(bool newVal) {
-    setState(() {
-      lightsState = newVal;
-    });
     //TODO: FIX THIS\
     api.userUpdateData(
         Provider.of<StateHandler>(context, listen: false).token!,
         Provider.of<StateHandler>(context, listen: false).currentGarden!.id,
         {'lights': newVal ? 1 : 0});
+    setState(() {
+      lightsState = newVal;
+    });
   }
 
   void changeRgbStatus(bool newVal) {
-    setState(() {
-      rgbStatus = newVal;
-    });
     api.userUpdateData(
         Provider.of<StateHandler>(context, listen: false).token!,
         Provider.of<StateHandler>(context, listen: false).currentGarden!.id,
         {'RGB.power': newVal ? 1 : 0});
+    setState(() {
+      rgbStatus = newVal;
+    });
   }
 }

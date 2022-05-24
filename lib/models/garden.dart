@@ -12,11 +12,11 @@ class Garden {
   final bool lights;
   @JsonKey(name: 'RGB')
   final RGB rgb;
-  final int temperature;
+  final double temperature;
   final int humidity;
   final int lightIntensity;
-  final int solarVoltage;
-  final int batteryVoltage;
+  final double solarVoltage;
+  final double batteryVoltage;
   final PumpSchedule pumpSchedule;
   final LightSchedule lightSchedule;
   final String gardenToken;

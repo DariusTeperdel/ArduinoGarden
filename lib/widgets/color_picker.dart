@@ -48,6 +48,14 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget> {
     rgbColor = widget.rgbColor;
     newColor = rgbColor;
     exit = false;
+
+    setState(() {
+      rgbMode = Provider.of<StateHandler>(context, listen: false)
+          .currentGarden!
+          .rgb
+          .mode;
+    });
+
     //TODO: FIX THIS
 
     // getDataField("rgbMode").then((value) {
@@ -60,28 +68,26 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget> {
   }
 
   void changeRgbColor(Color newColor) {
+    //TODO: CHECK IF WORKS
+    print(api.userUpdateData(
+        Provider.of<StateHandler>(context, listen: false).token!,
+        Provider.of<StateHandler>(context, listen: false).currentGarden!.id,
+        {'RGB.color': "${newColor.red},${newColor.green},${newColor.blue}"}));
     setState(() {
       rgbColor = newColor;
     });
-    //TODO: CHECK IF WORKS
-    api.userUpdateData(
-        Provider.of<StateHandler>(context, listen: false).token!,
-        Provider.of<StateHandler>(context, listen: false).currentGarden!.id,
-        {'RGB.color': "${rgbColor.red},${rgbColor.green},${rgbColor.blue}"});
   }
 
   void changeRgbMode(int newVal) {
-    setState(() {
-      rgbMode = newVal;
-    });
     //TODO: CHECK IF WORKS
     api.userUpdateData(
         Provider.of<StateHandler>(context, listen: false).token!,
         Provider.of<StateHandler>(context, listen: false).currentGarden!.id,
         {'RGB.mode': newVal});
+    setState(() {
+      rgbMode = newVal;
+    });
   }
-
-  void pauseRefreshTimer() {}
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +174,6 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget> {
                                       : BlendMode.dst),
                             ),
                             onTap: () {
-                              pauseRefreshTimer();
                               changeRgbMode(1);
                             },
                             alpha: (rgbMode == 1) ? 255 : 180,
@@ -180,7 +185,6 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget> {
                           child: GridCardButton(
                             icon: Icon(Icons.wb_iridescent),
                             onTap: () {
-                              pauseRefreshTimer();
                               changeRgbMode(0);
                             },
                             alpha: (rgbMode == 0) ? 255 : 180,
@@ -193,7 +197,6 @@ class _ColorPickerWidgetState extends State<ColorPickerWidget> {
                           child: GridCardButton(
                             icon: Icon(Icons.blur_linear),
                             onTap: () {
-                              pauseRefreshTimer();
                               changeRgbMode(2);
                             },
                             alpha: (rgbMode == 2) ? 255 : 180,
