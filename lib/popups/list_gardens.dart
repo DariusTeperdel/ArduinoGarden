@@ -36,6 +36,12 @@ class _ListGardensState extends State<ListGardens> {
                         );
                         Provider.of<StateHandler>(context, listen: false)
                             .updateUser();
+                        Provider.of<StateHandler>(context, listen: false)
+                            .setGardenIndex(0);
+                        Provider.of<StateHandler>(context, listen: false)
+                            .setCurrentGarden(Provider.of<StateHandler>(context,
+                                    listen: false)
+                                .gardens[0]);
                         Navigator.of(context).pop();
                       },
                       child: Text('delete'),
