@@ -25,19 +25,17 @@ class CreateGarden extends StatelessWidget {
             color: Colors.blue,
             child: const Text('Create'),
             onPressed: () async {
-              try {
-                Garden garden = await api.createGarden(
-                    Provider.of<StateHandler>(context, listen: false).token!,
-                    gardenName.text);
-                await Provider.of<StateHandler>(context, listen: false)
-                    .updateAll();
-                FlutterClipboard.copy(garden.gardenToken);
-                Fluttertoast.showToast(
-                  msg: "Garden token copied to clipoard.",
-                  toastLength: Toast.LENGTH_SHORT,
-                );
-                Navigator.of(context).pop();
-              } catch (e) {}
+              Garden garden = await api.createGarden(
+                  Provider.of<StateHandler>(context, listen: false).token!,
+                  gardenName.text);
+              await Provider.of<StateHandler>(context, listen: false)
+                  .updateAll();
+              FlutterClipboard.copy(garden.gardenToken);
+              Fluttertoast.showToast(
+                msg: "Garden token copied to clipoard.",
+                toastLength: Toast.LENGTH_SHORT,
+              );
+              Navigator.of(context).pop();
             },
           ),
         ],

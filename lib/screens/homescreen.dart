@@ -4,6 +4,7 @@ import 'package:arduino_garden/pages/graph.dart';
 import 'package:arduino_garden/pages/schedule.dart';
 import 'package:arduino_garden/pages/stats.dart';
 import 'package:arduino_garden/pages/settings.dart';
+import 'package:arduino_garden/popups/create_garden.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -31,45 +32,61 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: Text("Arduino Garden"),
         actions: [
-          PopupMenuButton(
-            // itemBuilder: (context) => [
-            //   const PopupMenuItem(
-            //     value: "garden 1",
-            //     child: Text("garden 1"),
-            //   ),
-            //   const PopupMenuItem(
-            //     value: "garden 2",
-            //     child: Text("garden 2"),
-            //   ),
-            // ],
-            itemBuilder: ((context) {
-              List<Garden> gardens =
-                  Provider.of<StateHandler>(context, listen: false).gardens!;
-              List<PopupMenuItem> items = [];
-              for (var i = 0; i < gardens.length; i++) {
-                items.add(
-                  PopupMenuItem(
-                    value: i,
-                    child: Text(gardens[i].name),
-                  ),
+          if (Provider.of<StateHandler>(context, listen: false)
+              .gardens!
+              .isNotEmpty) ...[
+            PopupMenuButton(
+              // itemBuilder: (context) => [
+              //   const PopupMenuItem(
+              //     value: "garden 1",
+              //     child: Text("garden 1"),
+              //   ),
+              //   const PopupMenuItem(
+              //     value: "garden 2",
+              //     child: Text("garden 2"),
+              //   ),
+              // ],
+              itemBuilder: ((context) {
+                List<Garden> gardens =
+                    Provider.of<StateHandler>(context, listen: false).gardens!;
+                List<PopupMenuItem> items = [];
+                for (var i = 0; i < gardens.length; i++) {
+                  items.add(
+                    PopupMenuItem(
+                      value: i,
+                      child: Text(gardens[i].name),
+                    ),
+                  );
+                }
+                return items;
+              }),
+              icon: Icon(Icons.arrow_drop_down),
+              onSelected: (newGarden) {
+                print(Provider.of<StateHandler>(context, listen: false)
+                    .gardens![newGarden as int]);
+                setState(() {
+                  Provider.of<StateHandler>(context, listen: false)
+                      .setCurrentGarden(
+                          Provider.of<StateHandler>(context, listen: false)
+                              .gardens![newGarden]);
+                  Provider.of<StateHandler>(context, listen: false)
+                      .setGardenIndex(newGarden);
+                });
+              },
+            ),
+          ] else ...[
+            MaterialButton(
+              onPressed: () async {
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return const CreateGarden();
+                  },
                 );
-              }
-              return items;
-            }),
-            icon: Icon(Icons.arrow_drop_down),
-            onSelected: (newGarden) {
-              print(Provider.of<StateHandler>(context, listen: false)
-                  .gardens![newGarden as int]);
-              setState(() {
-                Provider.of<StateHandler>(context, listen: false)
-                    .setCurrentGarden(
-                        Provider.of<StateHandler>(context, listen: false)
-                            .gardens![newGarden]);
-                Provider.of<StateHandler>(context, listen: false)
-                    .setGardenIndex(newGarden);
-              });
-            },
-          ),
+              },
+              child: Text('+'),
+            ),
+          ]
         ],
       ),
       body: pages[currentPage],
