@@ -5,14 +5,21 @@ class GridCard extends StatelessWidget {
   final Color backgroundColor;
   final double aspectRatio;
   final bool rounded;
-  final int alpha;
+  final int? alpha;
 
-  const GridCard(
-      {Key key, this.alpha, this.backgroundColor = const Color(0xFFFFF8E1), this.aspectRatio = 1, @required this.child, this.rounded = false})
-      : super(key: key);
+  const GridCard({
+    Key? key,
+    this.alpha,
+    this.backgroundColor = const Color(0xFFFFF8E1),
+    this.aspectRatio = 1,
+    required this.child,
+    this.rounded = false,
+  }) : super(key: key);
 
   BorderRadius get roundedRadius {
-    return rounded ? BorderRadius.all(Radius.circular(90)) : BorderRadius.all(Radius.circular(20));
+    return rounded
+        ? BorderRadius.all(Radius.circular(90))
+        : BorderRadius.all(Radius.circular(20));
   }
 
   @override
@@ -23,10 +30,12 @@ class GridCard extends StatelessWidget {
         padding: const EdgeInsets.all(8),
         child: Card(
           shape: RoundedRectangleBorder(
-              borderRadius: roundedRadius,
+            borderRadius: roundedRadius,
           ),
           elevation: 8,
-          color: alpha != null ? backgroundColor.withAlpha(alpha) : backgroundColor,
+          color: alpha != null
+              ? backgroundColor.withAlpha(alpha!)
+              : backgroundColor,
           child: ClipRRect(
             borderRadius: roundedRadius,
             child: child,
@@ -36,7 +45,6 @@ class GridCard extends StatelessWidget {
     );
   }
 }
-
 
 class GridCardButton extends StatelessWidget {
   final GestureTapCallback onTap;
@@ -48,11 +56,21 @@ class GridCardButton extends StatelessWidget {
   final bool rounded;
   final int alpha;
 
-  const GridCardButton({Key key, this.alpha, this.rounded = true, this.onLongPress, this.onTap, this.enabled=false, @required this.icon, this.backgroundColor = const Color(0xFFFFF8E1), this.iconColor=Colors.green}) : super(key: key);
+  const GridCardButton({
+    Key? key,
+    required this.alpha,
+    this.rounded = true,
+    required this.onLongPress,
+    required this.onTap,
+    this.enabled = false,
+    required this.icon,
+    this.backgroundColor = const Color(0xFFFFF8E1),
+    this.iconColor = Colors.green,
+  }) : super(key: key);
   @override
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<int>(
-        tween: IntTween(begin: 255, end: alpha ?? backgroundColor.alpha),
+        tween: IntTween(begin: 255, end: alpha),
         duration: const Duration(milliseconds: 200),
         builder: (context, alpha, child) {
           return GridCard(
@@ -70,16 +88,15 @@ class GridCardButton extends StatelessWidget {
                     child: icon,
                     data: Theme.of(context).copyWith(
                       iconTheme: Theme.of(context).iconTheme.copyWith(
-                        color: enabled ? iconColor : Colors.blueGrey.shade800,
-                      ),
+                            color:
+                                enabled ? iconColor : Colors.blueGrey.shade800,
+                          ),
                     ),
                   ),
                 ),
               ),
-
             ),
           );
-        }
-    );
+        });
   }
 }
