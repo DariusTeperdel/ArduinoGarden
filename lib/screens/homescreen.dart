@@ -83,7 +83,10 @@ class _HomeScreenState extends State<HomeScreen> {
                   );
                 });
               },
-              child: Text('+'),
+              child: Icon(
+                Icons.add,
+                color: Colors.white,
+              ),
             ),
           ]
         ],
